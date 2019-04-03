@@ -6,8 +6,8 @@ import math
 
 def harris_corners(img: np.ndarray, threshold=1.0, blur_sigma=2.0) -> List[Tuple[float, np.ndarray]]:
 
-    dx = cv2.Sobel(img,2,1,0,img)
-    dy = cv2.Sobel(img,2,0,1,img)
+    dx = cv2.Sobel(img,3,1,0,img)
+    dy = cv2.Sobel(img,3,0,1,img)
     """
     print("dx shape: " + str(dx.shape))
     print("dy shape: " + str(dy.shape))
@@ -17,21 +17,36 @@ def harris_corners(img: np.ndarray, threshold=1.0, blur_sigma=2.0) -> List[Tuple
     print("dy dy shape: " + str((dy*dy).shape))
     """
     M = np.array([[dx*dx, dx*dy],[dx*dy, dy*dy]])
-    #det1 = np.linalg.det(M)
     det1_M = M[0,1]*M[1,0]
     det_M = M[0,0]*M[1,1]-M[0,1]*M[1,0]
     trace_M = M[0,0] + M[1,1]
     R = det_M/trace_M
-    #R = det_M - 0.05*(trace_M*trace_M)
+    print(np.amax(R))
 
+    """
+    R = det_M - 0.05*(trace_M*trace_M)
+    R = R-np.amin(R)
+    print(R)
+    R = R/np.amax(R)
+    print(R)
+    R = R*255
+    print(R)
+    R = -R
+    print(R)
+    R = R-np.amin(R)
+    print(R)
+    """
+
+    """
     for i in range(R.shape[0]):
         for j in range(R.shape[1]):
             if abs(R[i-1][j-1]) > threshold:
-                R[i-1][j-1] = 30
                 print("i: " + str(i) + "j: " + str(j))
                 print(R[i-1][j-1])
+    """
+    
+    return R
 
-    return M[0,0]
     """
     Return the harris corners detected in the image.
     :param img: The grayscale image.

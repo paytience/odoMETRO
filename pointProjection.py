@@ -15,7 +15,7 @@ def project_points(ids: np.ndarray, points: np.ndarray, depth_img: np.ndarray) -
     :param ids: A N vector point ids.
     :param points: A 2xN matrix of 2D points
     :param depth_img: The depth image. Divide pixel value by 5000 to get depth in meters.
-    :return: A tuple containing a N vector and a 3xN vector of all the points that where successfully projected.
+    :return: A tuple containing a N vector and a 3xN vector of all the points that where successfully projected.test
     """
     raise NotImplementedError
 

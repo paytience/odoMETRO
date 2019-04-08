@@ -8,42 +8,17 @@ def harris_corners(img: np.ndarray, threshold=1.0, blur_sigma=2.0) -> List[Tuple
 
     dx = cv2.Sobel(img,3,1,0,img)
     dy = cv2.Sobel(img,3,0,1,img)
-    """
-    print("dx shape: " + str(dx.shape))
-    print("dy shape: " + str(dy.shape))
-    print("dx dy: " + str(dx*dy))
-    print("dx dx shape: " + str((dx*dx).shape))
-    print("dx dy shape: " + str((dx*dy).shape))
-    print("dy dy shape: " + str((dy*dy).shape))
-    """
     M = np.array([[dx*dx, dx*dy],[dx*dy, dy*dy]])
-    det1_M = M[0,1]*M[1,0]
-    det_M = M[0,0]*M[1,1]-M[0,1]*M[1,0]
-    trace_M = M[0,0] + M[1,1]
-    R = det_M/trace_M
-    print(np.amax(R))
+    sumM = np.zeros(M.shape)
+    for x in [0,1]:
+        for y in [0,1]:
+            sumM[x,y] = cv2.filter2D(M[x,y],-1,np.ones([3,3]));
 
-    """
-    R = det_M - 0.05*(trace_M*trace_M)
-    R = R-np.amin(R)
-    print(R)
-    R = R/np.amax(R)
-    print(R)
-    R = R*255
-    print(R)
-    R = -R
-    print(R)
-    R = R-np.amin(R)
-    print(R)
-    """
-
-    """
-    for i in range(R.shape[0]):
-        for j in range(R.shape[1]):
-            if abs(R[i-1][j-1]) > threshold:
-                print("i: " + str(i) + "j: " + str(j))
-                print(R[i-1][j-1])
-    """
+    det_M = sumM[0,0]*sumM[1,1]-sumM[0,1]*sumM[1,0]
+    trace_M = sumM[0,0] + sumM[1,1]
+    print("Number of zeros in trace: ",np.sum(trace_M==0), " nonzeroes: ", np.sum(trace_M!=0))
+    R = det_M - 0.04*trace_M*trace_M
+    print(R[0])
     
     return R
 

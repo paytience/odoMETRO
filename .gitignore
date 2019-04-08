@@ -1,1 +1,6 @@
 dataset/
+/odoMETRO.sln
+/odoMETRO.pyproj
+__pycache__/
+debug/
+.vs/

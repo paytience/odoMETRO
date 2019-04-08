@@ -4,21 +4,21 @@ from skimage.io import imread
 from skimage.color import rgb2gray
 from dataloader import DataLoader
 from harrisdetector import harris_corners
-from pointTracker import PointTracker
-from pointProjection import project_points
+#from pointTracker import PointTracker
+#from pointProjection import project_points
 import numpy as np
 import matplotlib.pyplot as plt
-from debug.PointsVisualizer import PointVisualizer
+#from debug.PointsVisualizer import PointVisualizer
 
-dl = DataLoader('dataset/rgbd_dataset_freiburg2_desk') # Edit this string to load a different dataset
+dl = DataLoader('dataset/rgbd_dataset_freiburg1_xyz') # Edit this string to load a different dataset
 
-tracker = PointTracker()
-vis = PointVisualizer()
+#tracker = PointTracker()
+#vis = PointVisualizer()
 
 # Set initial position of cameras in visualizer
 initial_orientation, initial_position = dl.get_transform()
-vis.set_groundtruth_transform(initial_orientation, initial_position)
-vis.set_estimated_transform(initial_orientation, initial_position)
+#vis.set_groundtruth_transform(initial_orientation, initial_position)
+#vis.set_estimated_transform(initial_orientation, initial_position)
 
 # Get points for the first frame
 grey_img = dl.get_greyscale()
@@ -38,16 +38,11 @@ grey_img = grey_img*255 #normalize for cornerharris method
 grey_img = grey_img.astype(np.uint8) #convert to correct dtype
 
 cv_harris = cv2.cornerHarris(grey_img,3,3,0.04)
-cv_harris = cv_harris - np.amin(cv_harris)
-cv_harris = cv_harris/np.amax(cv_harris)
-cv_harris = cv_harris*255
 
-print(np.amax(cv_harris))
-print(np.amin(cv_harris))
 plt.imshow(cv_harris)
 plt.show()
 
-tracker.add_new_corners(grey_img, points_and_response)
+#tracker.add_new_corners(grey_img, points_and_response)
 
 # Project the points in the first frame
 previous_ids, previous_points = tracker.get_position_with_id()

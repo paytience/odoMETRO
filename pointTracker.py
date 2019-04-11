@@ -78,6 +78,7 @@ class KLTTracker:
         """
 
         for iteration in range(max_iterations):
+
             raise NotImplementedError  # You should try to implement this without using any loops, other than this iteration loop. Otherwise it will be very slow.
 
         self.positionHistory.append((self.pos_x, self.pos_y, self.theta))  # Add new point to positionHistory to visualize tracking

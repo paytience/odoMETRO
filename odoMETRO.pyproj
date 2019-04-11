@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{ac3da013-ab8f-494c-ae31-4af74d0f68a1}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>dataloader.py</StartupFile>
+    <StartupFile>test.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from debug.PointsVisualizer import PointVisualizer
 
-dl = DataLoader('dataset/rgbd_dataset_freiburg2_desk') # Edit this string to load a different dataset
+dl = DataLoader('dataset/rgbd_dataset_freiburg1_xyz') # Edit this string to load a different dataset
 
 tracker = PointTracker()
 vis = PointVisualizer()
@@ -30,8 +30,13 @@ f.add_subplot(2,2,1)
 plt.imshow(grey_img)
 
 f.add_subplot(2,2,2)
-points_and_response = harris_corners(grey_img)
+points_and_response, maxes = harris_corners(grey_img)
 plt.imshow(points_and_response)
+
+toPlot = [t for r,t in maxes]
+print(*zip(*toPlot))
+
+plt.plot(*zip(*toPlot), 'ro')
 
 f.add_subplot(2,2,4)
 grey_img = grey_img*255 #normalize for cornerharris method
@@ -41,6 +46,21 @@ cv_harris = cv2.cornerHarris(grey_img,3,3,0.04)
 cv_harris = cv_harris - np.amin(cv_harris)
 cv_harris = cv_harris/np.amax(cv_harris)
 cv_harris = cv_harris*255
+
+
+dst = cv2.dilate(cv_harris,None)   
+
+maxPoints  = []
+
+for i in range(50):
+    pos = np.unravel_index(np.argmax(cv_harris),cv_harris.shape);
+    maxPoints.append((cv_harris[pos],pos))
+    cv_harris[pos] = 0
+
+toPlot = [t for r,t in maxPoints]
+print(*zip(*toPlot))
+
+plt.plot(*zip(*toPlot), 'ro')
 
 print(np.amax(cv_harris))
 print(np.amin(cv_harris))

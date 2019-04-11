@@ -18,7 +18,15 @@ def harris_corners(img: np.ndarray, threshold=1.0, blur_sigma=2.0) -> List[Tuple
     trace_M = sumM[0,0] + sumM[1,1]
     R = det_M - 0.04*trace_M*trace_M
     
-    return R
+    dst = cv2.dilate(R,None)
+    maxPoints  = []
+
+    for i in range(50):
+        pos = np.unravel_index(np.argmax(R),R.shape);
+        maxPoints.append((R[pos],pos))
+        R[pos] = 0
+    
+    return R, maxPoints
 
     """
     Return the harris corners detected in the image.

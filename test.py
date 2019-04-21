@@ -24,48 +24,35 @@ vis.set_estimated_transform(initial_orientation, initial_position)
 grey_img = dl.get_greyscale()
 depth_img = dl.get_depth()
 
+plt.imshow(grey_img,cmap = 'gray')
 
-f = plt.figure()
-f.add_subplot(2,2,1)
-plt.imshow(grey_img)
-
-f.add_subplot(2,2,2)
 points_and_response, maxes = harris_corners(grey_img)
+points_and_response = (points_and_response - np.amin(points_and_response))/(np.amax(points_and_response) - np.amin(points_and_response)) # Normalize
 plt.imshow(points_and_response)
 
 toPlot = [t for r,t in maxes]
-print(*zip(*toPlot))
 
 plt.plot(*zip(*toPlot), 'ro')
 
-f.add_subplot(2,2,4)
+plt.imshow(grey_img,cmap = 'gray')
+plt.show()
 grey_img = grey_img*255 #normalize for cornerharris method
 grey_img = grey_img.astype(np.uint8) #convert to correct dtype
 
 cv_harris = cv2.cornerHarris(grey_img,3,3,0.04)
-cv_harris = cv_harris - np.amin(cv_harris)
-cv_harris = cv_harris/np.amax(cv_harris)
-cv_harris = cv_harris*255
 
-
-dst = cv2.dilate(cv_harris,None)   
+cv_harris = (cv_harris - np.amin(cv_harris))/(np.amax(cv_harris) - np.amin(cv_harris)) # Normalize
 
 maxPoints  = []
 
 for i in range(50):
     pos = np.unravel_index(np.argmax(cv_harris),cv_harris.shape);
     maxPoints.append((cv_harris[pos],pos))
-    cv_harris[pos] = 0
 
 toPlot = [t for r,t in maxPoints]
-print(*zip(*toPlot))
 
-plt.plot(*zip(*toPlot), 'ro')
+#plt.plot(*zip(*toPlot), 'ro')
 
-print(np.amax(cv_harris))
-print(np.amin(cv_harris))
-plt.imshow(cv_harris)
-plt.show()
 
 tracker.add_new_corners(grey_img, points_and_response)
 

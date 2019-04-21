@@ -17,16 +17,26 @@ def harris_corners(img: np.ndarray, threshold=1.0, blur_sigma=2.0) -> List[Tuple
     det_M = sumM[0,0]*sumM[1,1]-sumM[0,1]*sumM[1,0]
     trace_M = sumM[0,0] + sumM[1,1]
     R = det_M - 0.04*trace_M*trace_M
+
+    filterR = np.array(R);
+    filterR[filterR<threshold] = 0;
+
+    window_size = 7;
+    H,W = filterR.shape;
+    for x in range(H-window_size+1):
+        for y in range(W-window_size+1):
+            window = filterR[x:x+window_size, y:y+window_size]
+            window[window<np.amax(window)] = 0
     
     dst = cv2.dilate(R,None)
     maxPoints  = []
 
     for i in range(50):
-        pos = np.unravel_index(np.argmax(R),R.shape);
-        maxPoints.append((R[pos],pos))
-        R[pos] = 0
+        pos = np.unravel_index(np.argmax(filterR),filterR.shape);
+        maxPoints.append((filterR[pos],pos[::-1]))
+        filterR[pos] = 0
     
-    return R, maxPoints
+    return filterR, maxPoints
 
     """
     Return the harris corners detected in the image.

@@ -77,6 +77,8 @@ class KLTTracker:
         2 if a invertible hessian is encountered and 3 if the final error is larger than max_error.
         """
 
+        v = np.zeros(1,2)
+
         for iteration in range(max_iterations):
 
             raise NotImplementedError  # You should try to implement this without using any loops, other than this iteration loop. Otherwise it will be very slow.

@@ -24,10 +24,12 @@ vis.set_estimated_transform(initial_orientation, initial_position)
 grey_img = dl.get_greyscale()
 depth_img = dl.get_depth()
 
-plt.imshow(grey_img,cmap = 'gray')
 
 points_and_response, maxes = harris_corners(grey_img)
 points_and_response = (points_and_response - np.amin(points_and_response))/(np.amax(points_and_response) - np.amin(points_and_response)) # Normalize
+"""
+plt.imshow(grey_img,cmap = 'gray')
+
 plt.imshow(points_and_response)
 
 toPlot = [t for r,t in maxes]
@@ -50,16 +52,16 @@ for i in range(50):
     maxPoints.append((cv_harris[pos],pos))
 
 toPlot = [t for r,t in maxPoints]
-
+"""
 #plt.plot(*zip(*toPlot), 'ro')
 
 
-tracker.add_new_corners(grey_img, points_and_response)
+tracker.add_new_corners(grey_img, maxes)
 
 # Project the points in the first frame
 previous_ids, previous_points = tracker.get_position_with_id()
-previous_ids, previous_points = project_points(previous_ids, previous_points, depth_img)
-vis.set_projected_points(previous_points, initial_orientation, initial_position)
+#previous_ids, previous_points = project_points(previous_ids, previous_points, depth_img)
+#vis.set_projected_points(previous_points, initial_orientation, initial_position)
 
 current_orientation = initial_orientation
 current_position = initial_position
@@ -76,7 +78,7 @@ while dl.has_next():
     depth_img = dl.get_depth()
     
     # Track current points on new image
-    #tracker.track_on_image(grey_img)
+    tracker.track_on_image(grey_img)
     #tracker.visualize(grey_img)
 
     # Project tracked points

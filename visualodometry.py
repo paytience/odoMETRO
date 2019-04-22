@@ -43,7 +43,7 @@ while dl.has_next():
     depth_img = dl.get_depth()
 
     # Track current points on new image
-    #tracker.track_on_image(grey_img)
+    tracker.track_on_image(grey_img)
     #tracker.visualize(grey_img)
 
     # Project tracked points

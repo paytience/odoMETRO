@@ -20,7 +20,7 @@ def get_warped_patch(img: np.ndarray, patch_size: int,
     :param theta: The rotation of the patch in radians.
     :return: The warped image patch.
     """
-    patch_half_size = patch_size/2
+    patch_half_size = patch_size / 2
     c = cos(-theta)
     s = sin(-theta)
 
@@ -47,13 +47,12 @@ class KLTTracker:
 
         pos_x, pos_y = initial_position
         image_height, image_width = origin_image.shape
-        assert self.patchHalfSizeFloored <= pos_x < image_width - self.patchHalfSizeFloored \
-               and self.patchHalfSizeFloored <= pos_y < image_height - self.patchHalfSizeFloored, \
+        assert self.patchHalfSizeFloored <= pos_x < image_width - self.patchHalfSizeFloored and self.patchHalfSizeFloored <= pos_y < image_height - self.patchHalfSizeFloored, \
             f'Point is to close to the image border for the current patch size, point is {initial_position} and patch_size is {patch_size}'
         self.trackingPatch = origin_image[pos_y - self.patchHalfSizeFloored:pos_y + self.patchHalfSizeFloored + 1,
                                           pos_x - self.patchHalfSizeFloored:pos_x + self.patchHalfSizeFloored + 1]
         self.visualizeColor = np.random.randint(0, 256, 3, dtype=int)
-        self.patchBorder = sqrt(2*patch_size**2) + 1
+        self.patchBorder = sqrt(2 * patch_size ** 2) + 1
 
     @property
     def pos_x(self):
@@ -77,14 +76,35 @@ class KLTTracker:
         2 if a invertible hessian is encountered and 3 if the final error is larger than max_error.
         """
 
-        v = np.zeros(1,2)
+        v = np.zeros((1,3))
+
+        dWdp = np.array([[1,0,-self.pos_x * np.sin(self.theta) - self.pos_y * np.cos(self.theta)],
+                         [0,1,self.pos_x * np.cos(self.theta) - self.pos_y * np.sin(self.theta)]])
+        
+        ix = int(np.round(self.pos_x))
+        iy = int(np.round(self.pos_y))
+        window = img_grad[ix - self.patchHalfSizeFloored:ix+ self.patchHalfSizeFloored + 1,iy - self.patchHalfSizeFloored:iy + self.patchHalfSizeFloored + 1]
+        He = window.dot(dWdp)
+        H = np.expand_dims(He,axis=-1)*(np.expand_dims(He,axis=-2));
+
+        H = np.sum(H,axis = (0,1))
+        print(H.shape)
+        print(H)
+
+        if np.linalg.det(H) == 0:
+            return 2
+
+        Hinv = np.linalg.inv(H)
+        print(Hinv.shape)
+        print(Hinv)
+        print(H.dot(Hinv))
 
         for iteration in range(max_iterations):
-
-            raise NotImplementedError  # You should try to implement this without using any loops, other than this iteration loop. Otherwise it will be very slow.
+            2+2
+            #raise NotImplementedError  # You should try to implement this without using any loops, other than this
+                                       # iteration loop.  Otherwise it will be very slow.
 
         self.positionHistory.append((self.pos_x, self.pos_y, self.theta))  # Add new point to positionHistory to visualize tracking
-
 
 class PointTracker:
 
@@ -95,7 +115,7 @@ class PointTracker:
         self.nextTrackerId = 0
 
     def visualize(self, img: np.ndarray, draw_id=False):
-        img_vis = cv2.cvtColor((img*255).astype(np.uint8), cv2.COLOR_GRAY2RGB)
+        img_vis = cv2.cvtColor((img * 255).astype(np.uint8), cv2.COLOR_GRAY2RGB)
         for klt in self.currentTrackers:
             x_pos = int(round(klt.pos_x))
             y_pos = int(round(klt.pos_y))
@@ -105,12 +125,12 @@ class PointTracker:
             cv2.circle(img_vis, (x_pos, y_pos), 3, [int(c) for c in klt.visualizeColor], -1)
             cv2.line(img_vis, (x_pos, y_pos), (x2_pos, y2_pos), 0, thickness=1, lineType=cv2.LINE_AA)
             if draw_id:
-                cv2.putText(img_vis, f'{klt.trackerID}', (x_pos+5, y_pos), cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, (255, 100, 0))
+                cv2.putText(img_vis, f'{klt.trackerID}', (x_pos + 5, y_pos), cv2.FONT_HERSHEY_COMPLEX_SMALL, 0.8, (255, 100, 0))
 
             if len(klt.positionHistory) >= 2:
-                for i in range(len(klt.positionHistory)-1):
+                for i in range(len(klt.positionHistory) - 1):
                     x_from, y_from, _ = klt.positionHistory[i]
-                    x_to, y_to, _ = klt.positionHistory[i+1]
+                    x_to, y_to, _ = klt.positionHistory[i + 1]
                     cv2.line(img_vis, (int(round(x_from)), int(round(y_from))), (int(round(x_to)), int(round(y_to))), 0, thickness=1, lineType=cv2.LINE_AA)
 
         cv2.imshow("KLT Trackers", img_vis)
@@ -131,8 +151,7 @@ class PointTracker:
         patch_border = sqrt(2 * self.trackingPatchSize ** 2) + 1
         for _, point in points_and_response_list:  # Filter out points to close to the image border
             pos_x, pos_y = point
-            if patch_border <= pos_x < image_width - patch_border \
-                    and patch_border <= pos_y < image_height - patch_border:
+            if patch_border <= pos_x < image_width - patch_border and patch_border <= pos_y < image_height - patch_border:
                 filtered_points.append(point)
 
         points = filtered_points

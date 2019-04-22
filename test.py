@@ -1,3 +1,4 @@
+print("f")
 import cv2
 import scipy.misc
 from skimage.io import imread

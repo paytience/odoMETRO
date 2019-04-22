@@ -76,35 +76,58 @@ class KLTTracker:
         2 if a invertible hessian is encountered and 3 if the final error is larger than max_error.
         """
 
-        v = np.zeros((1,3))
+        p = np.zeros((1,3))
 
-        dWdp = np.array([[1,0,-self.pos_x * np.sin(self.theta) - self.pos_y * np.cos(self.theta)],
-                         [0,1,self.pos_x * np.cos(self.theta) - self.pos_y * np.sin(self.theta)]])
-        
-        ix = int(np.round(self.pos_x))
-        iy = int(np.round(self.pos_y))
-        window = img_grad[ix - self.patchHalfSizeFloored:ix+ self.patchHalfSizeFloored + 1,iy - self.patchHalfSizeFloored:iy + self.patchHalfSizeFloored + 1]
-        He = window.dot(dWdp)
-        H = np.expand_dims(He,axis=-1)*(np.expand_dims(He,axis=-2));
-
-        H = np.sum(H,axis = (0,1))
-        print(H.shape)
-        print(H)
-
-        if np.linalg.det(H) == 0:
-            return 2
-
-        Hinv = np.linalg.inv(H)
-        print(Hinv.shape)
-        print(Hinv)
-        print(H.dot(Hinv))
+        minSquared = min_delta_length*=2
+        error = np.array();
 
         for iteration in range(max_iterations):
-            2+2
+            
+            jacob = np.array([[1,0,-self.pos_x* np.sin(self.theta+ p[2]) - self.pos_y* np.cos(self.theta + p[2])],
+                         [0,1,self.pos_x * np.cos(self.theta+ p[2]) - self.pos_y* np.sin(self.theta+ p[2])]])
+        
+            ix = int(np.round(self.pos_x + p[0]))
+            iy = int(np.round(self.pos_y + p[1]))
+            gradient = get_warped_patch(img_grad,self.patchSize,self.pos_x+p[0],self.pos_y+p[1], self.theta + p[2])
+            window = get_warped_patch(img,self.patchSize,self.pos_x+p[0],self.pos_y+p[1], self.theta + p[2])
+
+            steep = gradient.dot(jacob)
+            H = np.expand_dims(steep,axis=-1)@(np.expand_dims(steep,axis=-2))
+
+            H = np.sum(H,axis = (0,1))
+
+            if np.linalg.det(H) == 0: # If hessian is singular
+                return 2
+
+            Hinv = np.linalg.inv(H)
+
+            error = self.trackingPatch - window
+
+            dp += Hinv*np.sum(steep*error, axis = (0,1))
+            
+            p+= dp
+
+            if dp.dot(dp) < minSquared:
+                break
+
+
             #raise NotImplementedError  # You should try to implement this without using any loops, other than this
                                        # iteration loop.  Otherwise it will be very slow.
 
+
+        if np.sum(error) > max_error:
+            return 3
+
+        
+        self.translationX += p[0]
+        self.translationY += p[1]
+        self.theta += p[2]
+
+        if self.pos_x < self.patchHalfSizeFloored or self.pos_y < self.patchHalfSizeFloored or self.pos_x + self.patchHalfSizeFloored  +1>img.shape[1] or self.pos_y + self.patchHalfSizeFloored + 1>img.shape[0]:
+            return 1
+
         self.positionHistory.append((self.pos_x, self.pos_y, self.theta))  # Add new point to positionHistory to visualize tracking
+        return 0
 
 class PointTracker:
 

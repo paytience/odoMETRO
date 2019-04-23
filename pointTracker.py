@@ -76,23 +76,22 @@ class KLTTracker:
         2 if a invertible hessian is encountered and 3 if the final error is larger than max_error.
         """
 
-        p = np.zeros((1,3))
-
-        minSquared = min_delta_length*=2
-        error = np.array();
+        p = np.zeros(3) # Updating of position and angle
 
         for iteration in range(max_iterations):
             
-            jacob = np.array([[1,0,-self.pos_x* np.sin(self.theta+ p[2]) - self.pos_y* np.cos(self.theta + p[2])],
-                         [0,1,self.pos_x * np.cos(self.theta+ p[2]) - self.pos_y* np.sin(self.theta+ p[2])]])
+            a = -self.pos_x* np.sin(self.theta+ p[2]) - self.pos_y* np.cos(self.theta + p[2])
+            b = self.pos_x * np.cos(self.theta+ p[2]) - self.pos_y* np.sin(self.theta+ p[2])
+            jacob = np.array([[1,0,a], [0,1,b]])
         
+            # Find image patch and its gradients
             ix = int(np.round(self.pos_x + p[0]))
             iy = int(np.round(self.pos_y + p[1]))
             gradient = get_warped_patch(img_grad,self.patchSize,self.pos_x+p[0],self.pos_y+p[1], self.theta + p[2])
             window = get_warped_patch(img,self.patchSize,self.pos_x+p[0],self.pos_y+p[1], self.theta + p[2])
 
-            steep = gradient.dot(jacob)
-            H = np.expand_dims(steep,axis=-1)@(np.expand_dims(steep,axis=-2))
+            steep = gradient.dot(jacob) # Find steepest descent
+            H = np.expand_dims(steep,axis=-1)@(np.expand_dims(steep,axis=-2)) # Find hessian
 
             H = np.sum(H,axis = (0,1))
 
@@ -102,29 +101,35 @@ class KLTTracker:
             Hinv = np.linalg.inv(H)
 
             error = self.trackingPatch - window
-
-            dp += Hinv*np.sum(steep*error, axis = (0,1))
+            
+            dp = Hinv.dot(np.sum(steep * np.expand_dims(error,axis=-1), axis = (0,1)))
             
             p+= dp
 
-            if dp.dot(dp) < minSquared:
+            if dp.dot(dp) < min_delta_length**2:   # If dp is less than minimum delta
                 break
 
+            print("Error now: ", np.sum(error*error))
+            print(dp)
+            print(p)
 
             #raise NotImplementedError  # You should try to implement this without using any loops, other than this
                                        # iteration loop.  Otherwise it will be very slow.
 
 
-        if np.sum(error) > max_error:
+        if np.sum(np.abs(error)) > max_error: # If error is too large
             return 3
 
         
-        self.translationX += p[0]
+        self.translationX += p[0] # Update position/angle
         self.translationY += p[1]
         self.theta += p[2]
 
+        # If patch is outside of image
         if self.pos_x < self.patchHalfSizeFloored or self.pos_y < self.patchHalfSizeFloored or self.pos_x + self.patchHalfSizeFloored  +1>img.shape[1] or self.pos_y + self.patchHalfSizeFloored + 1>img.shape[0]:
             return 1
+
+        self.trackingPatch = window
 
         self.positionHistory.append((self.pos_x, self.pos_y, self.theta))  # Add new point to positionHistory to visualize tracking
         return 0
